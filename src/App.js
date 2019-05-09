@@ -1,18 +1,19 @@
 import React, { Component } from 'react';
 import './App.css';
 
+//Import Componenets
 import Dropdown from './components/Dropdown/Dropdown.js';
-//import Test from './components/Test/Test.js';
-
+import BarGraph from './components/BarGraph/BarGraph.js';
 
 // Define our App
 class App extends Component {
   state = {
-  	apiData: null,
+  	apiData: [],
+    currencies: [],
 		selections: [],
-		currencies: [],
 		relativeValues: {},
-		values: {},		
+		values: {},
+		barNumber: [1,2,3,4,5,]
 	}
 
 	componentDidMount() {
@@ -48,67 +49,26 @@ class App extends Component {
 		
 	handleChange = () => {
 		this.heightToZero();
-		setTimeout(() => this.makeBars(), 400);
+		setTimeout(() => this.setSelections(), 400);
 	}
 	
+	setSelections = () => {
+	  let tempSelections = [];
+	  for (let num of this.state.barNumber) {
+		  tempSelections.push(document.querySelector('.dropdown' + num).value);
+	  }
+    this.setState({
+			selections: tempSelections,
+		});
+	}
+
 	wait = () => {
 		console.log('wait');
 		setTimeout(() => this.heightTo100(), 20);
 	}
-	
-	makeBars = () => {	
-		console.log('change start');
-		let tempSelections = [];
-		let five = [1,2,3,4,5];
-		for (let num of five) {
-			tempSelections.push(document.querySelector('.select' + num).value);
-		}
-		let valuesArray = [];
-		let rawValue;
-		let shortRelativeValue;
-		let shortValue;
-    for (let selection of tempSelections) {
-	 		if (selection !== 'Currency') {
-	    rawValue = this.state.apiData.rates[selection];
-		  valuesArray.push(rawValue);
-	  	}
-   	}
-		let highest = Math.max(...valuesArray);
-		let relativeHeight;
-		let tempRelativeValues = {};
-		let tempValues = {};
-  	for (let selection of tempSelections) {
-		  if (selection !== 'Currency') {
-		      rawValue = this.state.apiData.rates[selection];
-					relativeHeight = rawValue / highest;
-		     	shortRelativeValue = relativeHeight.toFixed(2);
-					tempRelativeValues[selection] = shortRelativeValue;
-					shortValue = rawValue.toFixed(2);
-					tempValues[selection] = shortValue;
-			}
-		}
-		this.setState({
-			relativeValues: tempRelativeValues,
-			selections: tempSelections,
-			values: tempValues,
-		});
-		this.wait();
-		}			
 
   render() {
-		let five = [1,2,3,4,5];
-		let bars = this.state.selections.map((selection) => {
-			return selection !== 'Currency' ?					
-				<div className="BodyBox-graph-lower-bar" style={{height: this.state.relativeValues[selection] * 100 + '%'}}>
-					<p> 
-						{selection}
-					</p>  
-					<p className="BodyBox-graph-lower-bar-invisibleText">
-						1 USD is worth {this.state.values[selection]} {selection}					
-					</p>
-				</div>
-			: null
-		})
+    console.log(this.state);
     return (
       <div className="App">
     		<div className="Body-div">
@@ -119,42 +79,28 @@ class App extends Component {
 		      </div>
 		      <div className="SidebarAndBodyBox">
 		          <div className="SidebarBox">
-		              <div className="ButtonBox">
-		                  <br/>
-		                  <button onClick={this.handleClear} type="button">Clear Selections</button>
-		              </div>
-		              <div className="InputBox">
-										{five.map((num) =>
-											<Dropdown 
-											identifier={'select' + num}
-											onChange={this.handleChange}
-											options={this.state.currencies} 
-										/>)}                  
-		              </div>
+										<form className="InputBox">
+										  <input onClick={this.handleClear} type="reset" value="Clear Selections" /> 
+										  {this.state.barNumber.map((num) =>
+											  <Dropdown 
+												  dropdownOptions={this.state.currencies}
+	                        dropdownMethod={this.handleChange}
+                          dropdownDefaultOption={"Currency"}
+                          dropdownClassName={"dropdown" + num}
+										    />)}
+										</form>                  
 		          </div>
 		          <div className="BodyBox">
-		              <div className="BodyBox-graph">
-		                  <div className="BodyBox-graph-upper">
-		                  </div>
-		                  <div className="ContainerOfGraphLower">		
-												<div className="BodyBox-graph-lower">
-													{bars}
-												</div>						
-		                  </div> 
-		              </div> 
+		            <BarGraph
+		              BarGraphSelections={this.state.selections}
+		              BarGraphRates={this.state.apiData.rates}
+		            />
 		          </div>       
 		      </div> 
 				</div>   
 			</div>
     );
-
-
   }
-
-
-
-
-
 }
 
 export default App;
